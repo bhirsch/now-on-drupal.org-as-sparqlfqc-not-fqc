@@ -13,7 +13,7 @@ function fqc_help($path, $arg) {
     break;
 
     case 'admin/structure/fqc':
-      $endpoint = url('sparql', array('absolute' => TRUE,)); 
+      $endpoint = url('sparql', array('absolute' => TRUE,));
       $registry = l('SPARQL Endpoints Registry', 'admin/structure/sparql_registry');
       return '<p>' . t("This page enables RDF administrators to designate SPARQL endpoints to be cached locally for federated queries. Cached data can be queried with SPARQL queries against the local endpoint: !endpoint. Note: Your local endpoint must be registered with the !registry, otherwise it won't work.",
       array('!endpoint' => l($endpoint, $endpoint), '!registry' => $registry)
@@ -34,7 +34,7 @@ function fqc_menu() {
     'page arguments' => array('fqc_admin_structure'),
     'description' => 'Cache RDF data from designated SPARQL endpoints locally.',
     'access arguments' => array('administer rdf'),
-    'file' => 'fqc.admin.inc', 
+    'file' => 'fqc.admin.inc',
     'weight' => 1,
   );
 
@@ -42,7 +42,7 @@ function fqc_menu() {
 }
 
 /**
- * 
+ *
  */
 function fqc_get_data() {
   // Instantiate the ARC2 local store.
@@ -55,15 +55,25 @@ function fqc_get_data() {
   $endpoints = variable_get('fqc_endpoints', NULL);
   $domains = explode("\n", $endpoints);
   foreach ($domains as $domain) {
-    if (strlen(trim($domain))) {
-      $domain = url($domain, array('absolute' => TRUE));
-      $q = 'LOAD ' . $domain . '?query=CONSTRUCT+{%0D%0A++%3Fs+%3Fp+%3Fo%0D%0A}+WHERE+{%3Fs+%3Fp+%3Fo+.}&output=&jsonp=&key=>';
-      $rs = $store->query($q);
+    $domain = trim($domain);
+    if (strlen($domain)) {
+      $q = 'LOAD <' . $domain . '?query=CONSTRUCT+{%0D%0A++%3Fs+%3Fp+%3Fo%0D%0A}+WHERE+{%3Fs+%3Fp+%3Fo+.}&output=&jsonp=&key=>';
+      $store->query($q);
     }
   }
 
-  $here = t('here');
-  $text = t('Cached federated query data has been refreshed. Click !here to review data.', 
-      array('!here' => l($here, 'http://localhost/globalfocalpoint/sparql?query=SELECT+*+WHERE+{%0D%0A++GRAPH+%3Fg+{+%3Fs+%3Fp+%3Fo+.+}%0D%0A}%0D%0A&output=htmltab&jsonp=&key=')));
-  drupal_set_message($text);
+
+  if ($store->getErrors()) {
+    drupal_set_message(t('There was an error during the fetching of the data.'), 'error');
+  }
+  else {
+    drupal_set_message(t('Cached federated query data has been refreshed. Click !url to review data.', array(
+      '!url' => l('here', 'sparql', array(
+        'query' => array(
+          'query' => 'SELECT * WHERE {?s ?p ?o}',
+          'output' => 'htmltab',
+        ),
+      )),
+    )));
+  }
 }
