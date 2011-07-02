@@ -15,7 +15,7 @@ function fqc_help($path, $arg) {
     case 'admin/structure/fqc':
       $endpoint = url('sparql', array('absolute' => TRUE,));
       $registry = l('SPARQL Endpoints Registry', 'admin/structure/sparql_registry');
-      return '<p>' . t("This page enables RDF administrators to designate SPARQL endpoints to be cached locally for federated queries. Cached data can be queried with SPARQL queries against the local endpoint: !endpoint. Note: Your local endpoint must be registered with the !registry, otherwise it won't work.",
+      return '<p>' . t("This page enables RDF administrators to designate SPARQL endpoints to be cached locally for federated queries. Cached data can be queried with SPARQL queries against the local endpoint: !endpoint. Note: If you are using SPARQL Views your local endpoint must be registered with the !registry, otherwise it won't work.",
       array('!endpoint' => l($endpoint, $endpoint), '!registry' => $registry)
       ) . '</p>';
     break;
