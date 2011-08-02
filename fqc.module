@@ -42,7 +42,48 @@ function fqc_menu() {
 }
 
 /**
- *
+ * Implements hook_block_info().
+ */
+function fqc_block_info() {
+  $blocks['fqc'] = array(
+    'info' => t('Federated Query Cache Refresh')
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function fqc_block_view($delta) {
+  $block = array();
+
+  switch ($delta) {
+    case 'fqc': 
+      $block['subject'] = t('Refresh Cached RDF data');
+      $block['content'] = drupal_get_form('fqc_refresh');
+    break;
+  }
+
+  return $block;
+}
+
+/**
+ * @return 
+ *  $form array with button to refresh cached data.
+ */
+function fqc_refresh($form, &$form_state) {
+  $form['refresh'] = array(
+    '#type' => 'submit',
+    '#value' => t('Refresh Data'),
+  );
+  return $form;  
+}
+function fqc_refresh_submit($form, &$form_state) {
+  fqc_get_data();
+}
+
+/**
+ * Get/Refresh data from user designated URLs.
  */
 function fqc_get_data() {
   // Instantiate the ARC2 local store.
@@ -76,4 +117,58 @@ function fqc_get_data() {
       )),
     )));
   }
+}
+
+/**
+ * Get all cached RDF data and store it in one big array.
+ * 
+ * This function can be very helpful for prototyping, for people who don't know
+ * SPARQL. But be careful, this function will choke if you try and use this for 
+ * gigantic data sets.
+ *
+ * Make these values: 
+ *   s, subject, e.g. http://localhost/countryx/node/20
+ *   p, predicate, e.g. http://this.doesnt.really.get.checked.com/id
+ *   o, object, e.g. 12345
+ * Look like this:  
+ *   $data['subject']['predicate'] = 'object';
+ * 
+ * @param $short_preticate
+ *   Boolean. TRUE, shorten preticates to just include terms. 
+ *   FALSE, show the absolute URL. 
+ * 
+ * @param, $limit
+ *   Number of rows returned by query.
+ * 
+ * @return $data
+ *  Array of sanitized shipment data in the following format:  
+ *  $data['subject']['predicate'] = 'object';
+ */
+function fqc_data($short_predicate = TRUE, $limit = NULL) {
+  // Get RDF data from SPARQL endpoint.
+  $endpoint = url('sparql', array('absolute' => TRUE));
+  $limit = (empty($limit)) ? NULL : "LIMIT $limit";
+  $query = "SELECT * WHERE {
+            GRAPH ?g { ?s ?p ?o . }
+            $limit
+           }";
+  $sparql_results = sparql_request($query, $endpoint);
+
+  // Convert SPARQL results to a friendlier array.
+  $data = array();
+  foreach ($sparql_results['result']['rows'] as $row) {
+    // Sanitize data. 
+    $subject = check_plain($row['s']);
+    $predicate = check_plain($row['p']);
+    $object = check_plain($row['o']);
+    // Shorten predicate from this: http://purl.org/dc/terms
+    // to this: terms.
+    if ($short_predicate) {
+      $position = strripos($predicate, '/') + 1;
+      $predicate = substr($predicate, $position);
+    }
+    $data[$subject][$predicate] = $object;
+  }
+
+  return $data;
 }
