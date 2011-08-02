@@ -1,4 +1,0 @@
-name = "Federated Query Cache"
-description = "Cache RDF data from multiple sources locally for easy, fast federated RDF queries."
-core = 7.x
-package = "RDF"

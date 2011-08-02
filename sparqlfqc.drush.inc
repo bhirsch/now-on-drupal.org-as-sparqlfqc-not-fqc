@@ -20,12 +20,12 @@
  * @return
  *   An associative array describing your command(s).
  */
-function fqc_drush_command() {
+function sparqlfqc_drush_command() {
   $items = array();
 
-  $items['fqc-get-data'] = array(
+  $items['sparqlfqc-get-data'] = array(
     'description' => dt('Get/Refresh RDF data for SPARQL Federated Query Cache.'),
-    'aliases' => array('fgd'),
+    'aliases' => array('sgd'),
     'drupal dependencies' => array('sparql', 'sparql_endpoint'),
   );
 
@@ -44,7 +44,7 @@ function fqc_drush_command() {
  * @return
  *   A string with the help text for your command.
  */
-function fqc_drush_help($section) {
+function sparqlfqc_drush_help($section) {
   switch ($section) {
     case 'drush:federated-query-cache':
       return dt("Cache federated query data from SPQARQL endpoints.");
@@ -61,6 +61,6 @@ function fqc_drush_help($section) {
  *
  * To print something to the terminal window, use drush_print().
  */
-function drush_fqc_get_data() {
-  fqc_get_data();
+function drush_sparqlfqc_get_data() {
+  sparqlfqc_get_data();
 }

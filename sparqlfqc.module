@@ -1,18 +1,18 @@
 <?php
 /**
- * @file fqc.module
+ * @file sparqlfqc.module
  */
 
 /**
  * Implements hook_help().
  */
-function fqc_help($path, $arg) {
+function sparqlfqc_help($path, $arg) {
   switch ($path) {
-    case 'admin/help#fqc':
+    case 'admin/help#sparqlfqc':
       return '<p>' . t('Perform a federated query on multiple RDF data sources by caching data locally from designated SPARQL endpoints.') . '</p>';
     break;
 
-    case 'admin/structure/fqc':
+    case 'admin/structure/sparqlfqc':
       $endpoint = url('sparql', array('absolute' => TRUE,));
       $registry = l('SPARQL Endpoints Registry', 'admin/structure/sparql_registry');
       return '<p>' . t("This page enables RDF administrators to designate SPARQL endpoints to be cached locally for federated queries. Cached data can be queried with SPARQL queries against the local endpoint: !endpoint. Note: If you are using SPARQL Views your local endpoint must be registered with the !registry, otherwise it won't work.",
@@ -25,16 +25,16 @@ function fqc_help($path, $arg) {
 /**
  * Implements hook_menu().
  */
-function fqc_menu() {
+function sparqlfqc_menu() {
   $items = array();
 
-  $items['admin/structure/fqc'] = array(
+  $items['admin/structure/sparqlfqc'] = array(
     'title' => 'Federated Query Cache',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('fqc_admin_structure'),
+    'page arguments' => array('sparqlfqc_admin_structure'),
     'description' => 'Cache RDF data from designated SPARQL endpoints locally.',
     'access arguments' => array('administer rdf'),
-    'file' => 'fqc.admin.inc',
+    'file' => 'sparqlfqc.admin.inc',
     'weight' => 1,
   );
 
@@ -44,8 +44,8 @@ function fqc_menu() {
 /**
  * Implements hook_block_info().
  */
-function fqc_block_info() {
-  $blocks['fqc'] = array(
+function sparqlfqc_block_info() {
+  $blocks['sparqlfqc'] = array(
     'info' => t('Federated Query Cache Refresh')
   );
   return $blocks;
@@ -54,13 +54,13 @@ function fqc_block_info() {
 /**
  * Implements hook_block_view().
  */
-function fqc_block_view($delta) {
+function sparqlfqc_block_view($delta) {
   $block = array();
 
   switch ($delta) {
-    case 'fqc': 
+    case 'sparqlfqc': 
       $block['subject'] = t('Refresh Cached RDF data');
-      $block['content'] = drupal_get_form('fqc_refresh');
+      $block['content'] = drupal_get_form('sparqlfqc_refresh');
     break;
   }
 
@@ -71,21 +71,21 @@ function fqc_block_view($delta) {
  * @return 
  *  $form array with button to refresh cached data.
  */
-function fqc_refresh($form, &$form_state) {
+function sparqlfqc_refresh($form, &$form_state) {
   $form['refresh'] = array(
     '#type' => 'submit',
     '#value' => t('Refresh Data'),
   );
   return $form;  
 }
-function fqc_refresh_submit($form, &$form_state) {
-  fqc_get_data();
+function sparqlfqc_refresh_submit($form, &$form_state) {
+  sparqlfqc_get_data();
 }
 
 /**
  * Get/Refresh data from user designated URLs.
  */
-function fqc_get_data() {
+function sparqlfqc_get_data() {
   // Instantiate the ARC2 local store.
   $store = sparql_endpoint_initialize();
 
@@ -93,7 +93,7 @@ function fqc_get_data() {
   $store->reset();
 
   // Load data.
-  $endpoints = variable_get('fqc_endpoints', NULL);
+  $endpoints = variable_get('sparqlfqc_endpoints', NULL);
   $domains = explode("\n", $endpoints);
   foreach ($domains as $domain) {
     $domain = trim($domain);
@@ -144,7 +144,7 @@ function fqc_get_data() {
  *  Array of sanitized shipment data in the following format:  
  *  $data['subject']['predicate'] = 'object';
  */
-function fqc_data($short_predicate = TRUE, $limit = NULL) {
+function sparqlfqc_data($short_predicate = TRUE, $limit = NULL) {
   // Get RDF data from SPARQL endpoint.
   $endpoint = url('sparql', array('absolute' => TRUE));
   $limit = (empty($limit)) ? NULL : "LIMIT $limit";
